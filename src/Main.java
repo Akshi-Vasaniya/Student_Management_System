@@ -36,16 +36,16 @@ public class Main {
                 addStudent(sc, path);
                 break;
             case 2:
-//                List<String[]> rows = fetchStudent(path);
-//                for (String[] row: rows) {
-//                    for (String col: row) {
-//                        System.out.print(col + "\t");
-//                    }
-//                    System.out.println();
-//                }
+                List<String[]> rows = fetchStudent(path);
+                for (String[] row: rows) {
+                    for (String col: row) {
+                        System.out.print(col + "\t");
+                    }
+                    System.out.println();
+                }
                 break;
             case 3:
-//                searchRecords(sc, path);
+                searchRecords(sc, path);
                 break;
             case 4:
 //                updateRecord(path);
@@ -54,6 +54,69 @@ public class Main {
 //                deleteRecord(path);
                 break;
         }
+    }
+
+    /**
+     * This method is used to filter the records of CSV file based on ID/Gender/Course field. User can select based on
+     * which field user needs to get the records. I'm using fetchRecords() method to get the CSV file data
+     * @param sc Scanner object
+     * @param path CSV file path
+     */
+    private static void searchRecords(Scanner sc, String path) {
+        List<String[]> rows = fetchStudent(path);
+        // By which fields needs records.
+
+        System.out.println("Search by:\n1. ID\n2. Gender\n3. Course");
+        System.out.print("=> ");
+        String input = "";
+        int fields = sc.nextInt();
+        sc.nextLine();
+        switch (fields) {
+            case 1:
+                fields = 0;
+                System.out.print("Enter the Student ID: ");
+                input = sc.nextLine();
+                break;
+            case 2:
+                fields = 3;
+                System.out.print("Enter the Student Gender: ");
+                input = sc.nextLine();
+                break;
+            case 3:
+                fields = 4;
+                System.out.print("Enter the Student Gender: ");
+                input = sc.nextLine();
+                break;
+            default:
+                System.out.println("Invalid Input. Please select the right option.");
+                fields = -1;
+        }
+
+        if (fields != -1) {
+            for (String[] row: rows) {
+                if (row[fields].equalsIgnoreCase(input)) {
+                    for (String col: row) {
+                        System.out.print(col + "\t");
+                    }
+                    System.out.println();
+                }
+            }
+        }
+    }
+
+    /**
+     * This method is used to get all rows from CSV file by using CSVReader object.
+     * @param path CSV file path
+     * @return Student records in CSV file.
+     */
+    private static List<String[]> fetchStudent(String path) {
+        List<String[]> rows = List.of();
+        try (CSVReader reader = new CSVReader(new FileReader(path))) {
+            rows = reader.readAll();
+        } catch (IOException | CsvException ex) {
+            System.out.println("fetchStudent() | Exception: "+ex.getMessage());
+        }
+        return rows;
     }
 
     /**
