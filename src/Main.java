@@ -1,5 +1,7 @@
 import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
 import com.opencsv.CSVWriter;
+import com.opencsv.CSVWriterBuilder;
 import com.opencsv.exceptions.CsvException;
 import java.io.File;
 import java.io.FileReader;
@@ -7,8 +9,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
+import java.util.logging.SocketHandler;
 
 public class Main {
+    static String path = "src/Data/StudentRecords.csv";
+//    static String path = "src/Data/Temp.csv";
     public static void main(String[] args) {
         System.out.println("Student Management System");
         System.out.println();
@@ -17,10 +22,9 @@ public class Main {
     }
 
     private static void startFlow() {
-        String path = "src/Data/StudentRecords.csv";
         // Add header to file
         String[] header = {"Id", "Name", "Age", "Gender", "Course"};
-        File file = new File("src/Data/StudentRecords.csv");
+        File file = new File(path);
         if (file.length() == 0) {
             addDataToCSV(header, path);
         }
@@ -48,11 +52,61 @@ public class Main {
                 searchRecords(sc, path);
                 break;
             case 4:
-//                updateRecord(path);
+                String tempFile = "src/Data/Temp.csv";
+                updateRecord(sc, path, tempFile);
+//                path =
                 break;
             case 5:
 //                deleteRecord(path);
                 break;
+        }
+    }
+
+    /**
+     * This method used to update the record of student data. The logic behind is that we are reading the data from
+     * our current file and write the updated data into new file Has CSV is just text data, so we cannot just edit the
+     * data of any col in between. If we want change the value to any col either we can change it to same bit that's
+     * okay, but if bits are less or more than we need to move all the bits after that. That's why needs to create new
+     * file.
+     * @param sc Object of Scanner
+     * @param path Path of current
+     * @param tempFile Path of New file, with updated record
+     */
+    private static void updateRecord(Scanner sc, String path, String tempFile) {
+        sc.nextLine();
+        System.out.print("Enter student ID to update ");
+        String id = sc.nextLine();
+
+        System.out.print("Select which field needs to update:\n1. Name\n2. Course\n=> ");
+        int field = sc.nextInt();
+        if (field == 2) field = 4;
+        sc.nextLine();
+
+        System.out.print("Enter the value: ");
+        String newValue = sc.nextLine();
+
+        try (
+                CSVReader reader = new CSVReaderBuilder(
+                        new FileReader(path))
+                        .withSkipLines(1) // skip header
+                        .build();
+
+                CSVWriter writer = (CSVWriter) new CSVWriterBuilder(
+                        new FileWriter(tempFile, true))
+                        .withSeparator(',')
+                        .build();
+            ) {
+            List<String[]> records = reader.readAll();
+            for (String[] rows : records) {
+                if (rows[0].equalsIgnoreCase(id)) {
+                    rows[field] = newValue;
+                }
+                writer.writeNext(rows);
+            }
+
+            System.out.println("Record update successfully!");
+        } catch (Exception ex) {
+            System.out.println("updateRecord() | Exception: "+ ex.getMessage());
         }
     }
 
