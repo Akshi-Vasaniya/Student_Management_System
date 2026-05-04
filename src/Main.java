@@ -1,7 +1,4 @@
-import com.opencsv.CSVReader;
-import com.opencsv.CSVReaderBuilder;
-import com.opencsv.CSVWriter;
-import com.opencsv.CSVWriterBuilder;
+import com.opencsv.*;
 import com.opencsv.exceptions.CsvException;
 import java.io.File;
 import java.io.FileReader;
@@ -165,7 +162,11 @@ public class Main {
      */
     private static List<String[]> fetchStudent(String path) {
         List<String[]> rows = List.of();
-        try (CSVReader reader = new CSVReader(new FileReader(path))) {
+        try (
+                CSVReader reader = new CSVReaderBuilder(new FileReader(path))
+                        .withSkipLines(1)
+                        .build()
+        ) {
             rows = reader.readAll();
         } catch (IOException | CsvException ex) {
             System.out.println("fetchStudent() | Exception: "+ex.getMessage());
@@ -202,11 +203,12 @@ public class Main {
      * @param path Path of CSV file
      */
     private static void addDataToCSV(String[] record, String path) {
-        try{
-            FileWriter fw = new FileWriter(path, true); // Create the file in not exists
-            CSVWriter csvWriter = new CSVWriter(fw);
+        try (
+                ICSVWriter csvWriter = new CSVWriterBuilder(new FileWriter(path, true))
+                        .withSeparator(',')
+                        .build()
+        ) {
             csvWriter.writeNext(record);
-            csvWriter.close();
             System.out.println();
             System.out.println("Record added successfully!");
             System.out.println();
