@@ -4,11 +4,15 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Scanner;
 
 public class Main {
     static String path = "src/Data/StudentRecords.csv";
+    static String[] header = {"Id", "Name", "Age", "Gender", "Course"};
 //    static String path = "src/Data/Temp.csv";
     public static void main(String[] args) {
         System.out.println("Student Management System");
@@ -19,7 +23,6 @@ public class Main {
 
     private static void startFlow() {
         // Add header to file
-        String[] header = {"Id", "Name", "Age", "Gender", "Course"};
         File file = new File(path);
         if (file.length() == 0) {
             writeDataToCSV(header, path);
@@ -48,9 +51,7 @@ public class Main {
                 searchRecords(sc, path);
                 break;
             case 4:
-                String tempFile = "src/Data/Temp.csv";
-                updateRecord(sc, path, tempFile);
-//                path =
+                updateRecord(sc, path);
                 break;
             case 5:
 //                deleteRecord(path);
@@ -66,9 +67,8 @@ public class Main {
      * file.
      * @param sc Object of Scanner
      * @param path Path of current
-     * @param tempFile Path of New file, with updated record
      */
-    private static void updateRecord(Scanner sc, String path, String tempFile) {
+    private static void updateRecord(Scanner sc, String path) {
         sc.nextLine();
         System.out.print("Enter student ID to update: ");
         String id = sc.nextLine();
@@ -83,6 +83,9 @@ public class Main {
 
         List<String[]> records = readRecords(path);
         String tempPath = "src/Data/Temp.csv";
+        // Adding to header to temp file
+        writeDataToCSV(header, tempPath);
+
         for (String[] rows : records) {
             if (rows[0].equalsIgnoreCase(id)) {
                 rows[field] = newValue;
@@ -90,9 +93,38 @@ public class Main {
             writeDataToCSV(rows, tempPath);
         }
 
+        renameTempFile(tempPath, path);
         System.out.println();
         System.out.println("<<<< Record update successfully! >>>>");
     }
+
+    /**
+     * This method is used to replace the original file by temp file, which contain updated records. After replacing,
+     * we are renaming the temp file the same name which original file has.
+     * @param tempFile Temp file with updated records
+     * @param originalFile Original file with old records
+     */
+    private static void renameTempFile(String tempFile, String originalFile) {
+        try {
+            // move() method rename file and overwrite if same path. Move + rename if different path.
+            Files.move(
+                    Paths.get(tempFile),
+                    Paths.get(originalFile),
+                    StandardCopyOption.REPLACE_EXISTING
+            );
+        } catch (IOException ex) {
+            System.out.println("renameTempFile() | Exception: "+ex.getMessage());
+        }
+    }
+
+    /*
+    private static void deleteFile(String path) {
+        try {
+            Files.deleteIfExists(Paths.get(path));
+        } catch (IOException ex) {
+            System.out.println("deleteFile() | Exception: "+ex.getMessage());
+        }
+    } */
 
     /**
      * This method is used to filter the records of CSV file based on ID/Gender/Course field. User can select based on
