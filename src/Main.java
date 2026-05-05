@@ -6,7 +6,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
-import java.util.logging.SocketHandler;
 
 public class Main {
     static String path = "src/Data/StudentRecords.csv";
@@ -23,7 +22,7 @@ public class Main {
         String[] header = {"Id", "Name", "Age", "Gender", "Course"};
         File file = new File(path);
         if (file.length() == 0) {
-            addDataToCSV(header, path);
+            writeDataToCSV(header, path);
         }
 
         // Operations on file
@@ -37,7 +36,7 @@ public class Main {
                 addStudent(sc, path);
                 break;
             case 2:
-                List<String[]> rows = fetchStudent(path);
+                List<String[]> rows = readRecords(path);
                 for (String[] row: rows) {
                     for (String col: row) {
                         System.out.print(col + "\t");
@@ -71,7 +70,7 @@ public class Main {
      */
     private static void updateRecord(Scanner sc, String path, String tempFile) {
         sc.nextLine();
-        System.out.print("Enter student ID to update ");
+        System.out.print("Enter student ID to update: ");
         String id = sc.nextLine();
 
         System.out.print("Select which field needs to update:\n1. Name\n2. Course\n=> ");
@@ -82,29 +81,17 @@ public class Main {
         System.out.print("Enter the value: ");
         String newValue = sc.nextLine();
 
-        try (
-                CSVReader reader = new CSVReaderBuilder(
-                        new FileReader(path))
-                        .withSkipLines(1) // skip header
-                        .build();
-
-                CSVWriter writer = (CSVWriter) new CSVWriterBuilder(
-                        new FileWriter(tempFile, true))
-                        .withSeparator(',')
-                        .build();
-            ) {
-            List<String[]> records = reader.readAll();
-            for (String[] rows : records) {
-                if (rows[0].equalsIgnoreCase(id)) {
-                    rows[field] = newValue;
-                }
-                writer.writeNext(rows);
+        List<String[]> records = readRecords(path);
+        String tempPath = "src/Data/Temp.csv";
+        for (String[] rows : records) {
+            if (rows[0].equalsIgnoreCase(id)) {
+                rows[field] = newValue;
             }
-
-            System.out.println("Record update successfully!");
-        } catch (Exception ex) {
-            System.out.println("updateRecord() | Exception: "+ ex.getMessage());
+            writeDataToCSV(rows, tempPath);
         }
+
+        System.out.println();
+        System.out.println("<<<< Record update successfully! >>>>");
     }
 
     /**
@@ -114,7 +101,7 @@ public class Main {
      * @param path CSV file path
      */
     private static void searchRecords(Scanner sc, String path) {
-        List<String[]> rows = fetchStudent(path);
+        List<String[]> rows = readRecords(path);
         // By which fields needs records.
 
         System.out.println("Search by:\n1. ID\n2. Gender\n3. Course");
@@ -160,7 +147,7 @@ public class Main {
      * @param path CSV file path
      * @return Student records in CSV file.
      */
-    private static List<String[]> fetchStudent(String path) {
+    private static List<String[]> readRecords(String path) {
         List<String[]> rows = List.of();
         try (
                 CSVReader reader = new CSVReaderBuilder(new FileReader(path))
@@ -169,7 +156,7 @@ public class Main {
         ) {
             rows = reader.readAll();
         } catch (IOException | CsvException ex) {
-            System.out.println("fetchStudent() | Exception: "+ex.getMessage());
+            System.out.println("readRecords() | Exception: "+ex.getMessage());
         }
         return rows;
     }
@@ -194,7 +181,10 @@ public class Main {
         System.out.print("Course: ");
         arr[4] = sc.nextLine();
 
-        addDataToCSV(arr, path);
+        writeDataToCSV(arr, path);
+        System.out.println();
+        System.out.println("<<<< Record added successfully! >>>>");
+        System.out.println();
     }
 
     /**
@@ -202,18 +192,15 @@ public class Main {
      * @param record Student record array
      * @param path Path of CSV file
      */
-    private static void addDataToCSV(String[] record, String path) {
+    private static void writeDataToCSV(String[] record, String path) {
         try (
                 ICSVWriter csvWriter = new CSVWriterBuilder(new FileWriter(path, true))
                         .withSeparator(',')
                         .build()
         ) {
             csvWriter.writeNext(record);
-            System.out.println();
-            System.out.println("Record added successfully!");
-            System.out.println();
         } catch (Exception ex) {
-            System.out.println("addDataToCSV() | Exception: "+ ex.getMessage());
+            System.out.println("writeDataToCSV() | Exception: "+ ex.getMessage());
         }
     }
 }
