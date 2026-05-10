@@ -7,12 +7,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
+import java.lang.String;
 
 public class Main {
     static String path = "src/Data/StudentRecords.csv";
-    static String[] header = {"Id", "Name", "Age", "Gender", "Course"};
+    static List<String[]> header = new ArrayList<>(List.of());
 //    static String path = "src/Data/Temp.csv";
     public static void main(String[] args) {
         System.out.println("Student Management System");
@@ -23,9 +26,10 @@ public class Main {
 
     private static void startFlow() {
         // Add header to file
+        header.add(new String[]{"Id", "Name", "Age", "Gender", "Course"});
         File file = new File(path);
         if (file.length() == 0) {
-            writeDataToCSV(header, path);
+            appendDataToCSV(header, path);
         }
 
         // Operations on file
@@ -54,9 +58,37 @@ public class Main {
                 updateRecord(sc, path);
                 break;
             case 5:
-//                deleteRecord(path);
+                deleteRecord(sc, path);
                 break;
         }
+    }
+
+    /**
+     * This method is used to delete the single row/record based on I'd from CSV file. After skipping that row, I am
+     * updating the id of all other rows below it. New records are overwriting the same file.
+     * @param sc Scanner object
+     * @param path Path of CSV file
+     */
+    private static void deleteRecord(Scanner sc, String path) {
+        System.out.print("Enter the id of the student: ");
+        int id = sc.nextInt();
+
+        List<String[]> rows = readRecords(path);
+        List<String[]> newRows = new ArrayList<>(header);
+
+        for (String[] row : rows) {
+            if (Integer.parseInt(row[0]) < id) {
+                newRows.add(row);
+            }else if (Integer.parseInt(row[0]) > id) {
+                row[0] = String.valueOf(id);
+                newRows.add(row);
+                id++;
+            }
+        }
+
+        writeDataToCSV(newRows, path);
+        System.out.println();
+        System.out.println("<<<< Records deleted successfully! >>>>");
     }
 
     /**
@@ -84,14 +116,15 @@ public class Main {
         List<String[]> records = readRecords(path);
         String tempPath = "src/Data/Temp.csv";
         // Adding to header to temp file
-        writeDataToCSV(header, tempPath);
+        appendDataToCSV(header, tempPath);
 
         for (String[] rows : records) {
             if (rows[0].equalsIgnoreCase(id)) {
                 rows[field] = newValue;
             }
-            writeDataToCSV(rows, tempPath);
         }
+
+        appendDataToCSV(records, tempPath);
 
         renameTempFile(tempPath, path);
         System.out.println();
@@ -213,7 +246,9 @@ public class Main {
         System.out.print("Course: ");
         arr[4] = sc.nextLine();
 
-        writeDataToCSV(arr, path);
+        List<String[]> rows = new ArrayList<>(List.of());
+        rows.add(arr);
+        appendDataToCSV(rows, path);
         System.out.println();
         System.out.println("<<<< Record added successfully! >>>>");
         System.out.println();
@@ -221,16 +256,28 @@ public class Main {
 
     /**
      * This method is used to store records to CSV file. Using CSVWriter library to store the input in CSV file.
-     * @param record Student record array
+     * @param rows Student record array
      * @param path Path of CSV file
      */
-    private static void writeDataToCSV(String[] record, String path) {
+    private static void appendDataToCSV(List<String[]> rows, String path) {
         try (
                 ICSVWriter csvWriter = new CSVWriterBuilder(new FileWriter(path, true))
                         .withSeparator(',')
                         .build()
         ) {
-            csvWriter.writeNext(record);
+            csvWriter.writeAll(rows);
+        } catch (Exception ex) {
+            System.out.println("writeDataToCSV() | Exception: "+ ex.getMessage());
+        }
+    }
+
+    private static void writeDataToCSV(List<String[]> rows, String path) {
+        try (
+                ICSVWriter csvWriter = new CSVWriterBuilder(new FileWriter(path))
+                        .withSeparator(',')
+                        .build()
+        ) {
+            csvWriter.writeAll(rows);
         } catch (Exception ex) {
             System.out.println("writeDataToCSV() | Exception: "+ ex.getMessage());
         }
