@@ -4,9 +4,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -113,9 +110,10 @@ public class Main {
         String newValue = sc.nextLine();
 
         List<String[]> records = readRecords(path);
-        String tempPath = "src/Data/Temp.csv";
-        // Adding to header to temp file
-        appendDataToCSV(header, tempPath);
+//        String tempPath = "src/Data/Temp.csv";
+
+        // Overwriting the header to current CSV file.
+        writeDataToCSV(header, path);
 
         for (String[] rows : records) {
             if (rows[0].equalsIgnoreCase(id)) {
@@ -123,19 +121,14 @@ public class Main {
             }
         }
 
-        appendDataToCSV(records, tempPath);
+        // Appending the data after overwriting the header.
+        appendDataToCSV(records, path);
 
-        renameTempFile(tempPath, path);
         System.out.println();
         System.out.println("<<<< Record update successfully! >>>>");
     }
 
-    /**
-     * This method is used to replace the original file by temp file, which contain updated records. After replacing,
-     * we are renaming the temp file the same name which original file has.
-     * @param tempFile Temp file with updated records
-     * @param originalFile Original file with old records
-     */
+    /*
     private static void renameTempFile(String tempFile, String originalFile) {
         try {
             // move() method rename file and overwrite if same path. Move + rename if different path.
@@ -149,7 +142,7 @@ public class Main {
         }
     }
 
-    /*
+
     private static void deleteFile(String path) {
         try {
             Files.deleteIfExists(Paths.get(path));
