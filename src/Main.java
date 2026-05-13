@@ -224,11 +224,25 @@ public class Main {
      * @param path Path of the CSV file.
      */
     private static void addStudent(Scanner sc, String path) {
+        File file = new File(path);
+        List<String[]> rows = List.of();
+        if (file.length() != 0) {
+            rows = readRecords(path);
+        }
+        
         sc.nextLine();
         System.out.println("Enter the details of the student - ");
         String[] arr = new String[5];
+       
         System.out.print("ID: ");
-        arr[0] = sc.nextLine();
+        String id = sc.nextLine();
+        if (Integer.parseInt(id) > rows.size()) {
+            arr[0] = id;
+        } else {
+            System.out.println();
+            System.out.println("Id already exists. Please enter correct Id!!!!");
+            return;
+        }
         System.out.print("Name: ");
         arr[1] = sc.nextLine();
         System.out.print("Age: ");
@@ -238,7 +252,7 @@ public class Main {
         System.out.print("Course: ");
         arr[4] = sc.nextLine();
 
-        List<String[]> rows = new ArrayList<>(List.of());
+        rows = new ArrayList<>(List.of());
         rows.add(arr);
         appendDataToCSV(rows, path);
         System.out.println();
